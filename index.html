@@ -1,0 +1,166 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talent Agency</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        .page {
+            display: none;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            background-color: black;
+        }
+        #home {
+            display: flex;
+            align-items: center;
+        }
+        #talent, #contact {
+            padding: 40px;
+            text-align: center;
+            width: 100%;
+        }
+        .button-container {
+            text-align: center;
+        }
+        button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0 20px;
+            cursor: pointer;
+            transition: transform 0.3s, color 0.3s;
+        }
+        button:hover {
+            color: #ccc;
+            transform: scale(1.2);
+        }
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            margin: 0;
+        }
+        h1 {
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 20px 0;
+            position: relative;
+            top: 0;
+        }
+        .talent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+        .talent-card {
+            background: #333;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            color: white;
+        }
+        .contact-info {
+            margin: 20px 0;
+            font-size: 16px;
+        }
+        .contact-info a {
+            color: #ccc;
+            text-decoration: none;
+        }
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div id="home" class="page">
+        <div class="button-container">
+            <button onclick="showPage('talent')">TALENT</button>
+            <button onclick="showPage('contact')">CONTACT</button>
+        </div>
+    </div>
+    <div id="talent" class="page">
+        <div>
+            <button class="back-button" onclick="showPage('home')">&larr;</button>
+            <h1>OUR TALENT</h1>
+            <div class="talent-grid">
+                <div class="talent-card">
+                    <h3>Bullet Scars - Band</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="contact" class="page">
+        <div>
+            <button class="back-button" onclick="showPage('home')">&larr;</button>
+            <h1>CONTACT US</h1>
+            <div class="contact-info">
+                <p><a href="mailto:barredintalent@gmail.com">barredintalent@gmail.com</a></p>
+            </div>
+        </div>
+    </div>
+    <script>
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.style.display = 'none';
+            });
+            document.getElementById(pageId).style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
